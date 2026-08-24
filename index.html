@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Virtual - Lobby UAN v3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #f8fafc;
+            user-select: none;
+        }
+        .app-window {
+            width: 100%;
+            max-width: 1020px;
+            height: 94vh;
+            max-height: 800px;
+            background: rgba(15, 23, 42, 0.96);
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .rotatable {
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+        }
+        .rotatable:hover {
+            border-color: #38bdf8 !important;
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="p-2">
+
+    <div class="app-window p-5 flex flex-col justify-between">
+        
+        <!-- ENCABEZADO Y SCORE SYSTEM -->
+        <header class="flex justify-between items-center border-b border-slate-700/80 pb-3">
+            <div>
+                <h1 class="font-bold text-base tracking-wide text-slate-100">HOSPITAL DIGITAL UNIVERSITARIO</h1>
+                <p class="text-xs text-cyan-400 font-medium">Estudiante de Enfermería — Universidad Antonio Nariño</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-700 px-4 py-1.5 rounded-xl text-right">
+                <span class="text-[10px] text-slate-400 block uppercase font-mono">Puntaje Bioseguridad</span>
+                <span id="score-text" class="text-base font-extrabold font-mono text-emerald-400">0.0 / 5.0</span>
+            </div>
+        </header>
+
+        <!-- PANTALLAS DEL PUZZLE -->
+        <main class="flex-1 my-3 relative overflow-hidden flex flex-col justify-center">
+
+            <!-- RETO 1: CASILLERO Y RETIRO DE FÓMITES -->
+            <div id="step-1" class="h-full flex flex-col justify-between">
+                <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                    <h2 class="text-xs font-bold text-cyan-300 uppercase font-mono">📋 Indicación de Simulación:</h2>
+                    <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                        Nos estamos alistando para ingresar al área de procedimientos. No olvides dejar todos los elementos que no necesitas dentro del casillero. Si llevas algún objeto no seguro para el área clínica, por favor guárdalo. <i>(Recuerda que algunos accesorios requieren girarse para entrar en las ranuras).</i>
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-12 gap-3 my-auto items-center">
+                    <!-- Casillero Digital -->
+                    <div class="col-span-6 bg-slate-900/90 border-2 border-slate-700 p-3 rounded-2xl space-y-2">
+                        <span class="text-[10px] text-cyan-400 font-mono block text-center uppercase tracking-wider">Casillero Personal de Seguridad</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div id="tray-1" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'narrow')" class="h-24 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center p-1 bg-slate-950/50">
+                                <span class="text-[9px] text-slate-500 font-mono text-center">Compartimento Estrecho 1<br>(Accesorios delgados)</span>
+                            </div>
+                            <div id="tray-2" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'narrow')" class="h-24 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center p-1 bg-slate-950/50">
+                                <span class="text-[9px] text-slate-500 font-mono text-center">Compartimento Estrecho 2<br>(Accesorios delgados)</span>
+                            </div>
+                        </div>
+                        <div id="tray-shelf" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'shelf')" class="h-16 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center bg-slate-950/50">
+                            <span class="text-[9px] text-slate-500 font-mono">Estante General de Objetos Personal</span>
+                        </div>
+                    </div>
+
+                    <!-- Banco de Objetos Del Estudiante -->
+                    <div class="col-span-6 bg-slate-900/40 border border-slate-800 p-3 rounded-2xl flex flex-wrap gap-2 items-center justify-center max-h-56 overflow-y-auto">
+                        <div id="item-watch" draggable="true" ondragstart="handleDragStart(event)" onclick="rotateItem(this)" data-angle="0" class="rotatable bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1">
+                            ⌚ <span class="text-[10px]">Reloj (0°)</span>
+                        </div>
+                        <div id="item-ring" draggable="true" ondragstart="handleDragStart(event)" onclick="rotateItem(this)" data-angle="0" class="rotatable bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1">
+                            💍 <span class="text-[10px]">Anillo (0°)</span>
+                        </div>
+                        <div id="item-bracelet" draggable="true" ondragstart="handleDragStart(event)" onclick="rotateItem(this)" data-angle="0" class="rotatable bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1">
+                            📿 <span class="text-[10px]">Pulsera (0°)</span>
+                        </div>
+                        <div id="item-phone" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
+                            📱 <span class="text-[10px]">Teléfono</span>
+                        </div>
+                        <div id="item-airpods" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
+                            🎧 <span class="text-[10px]">Audífonos</span>
+                        </div>
+                        <div id="item-keys" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
+                            🔑 <span class="text-[10px]">Llaves</span>
+                        </div>
+                        <div id="item-sunglasses" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
+                            🕶️ <span class="text-[10px]">Gafas Sol</span>
+                        </div>
+                        <!-- DISTRACTOR BATA EN EL CASILLERO -->
+                        <div id="item-gown-distractor" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
+                            🥼 <span class="text-[10px]">Bata Antifluidos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
+                    <span id="feedback-1" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
+                    <button onclick="validateStep1()" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30">
+                        Siguiente: Equipamiento EPP →
+                    </button>
+                </div>
+            </div>
+
+            <!-- RETO 2: PERCHERO EPP -->
+            <div id="step-2" class="hidden h-full flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-200">Reto 2: Selección de Elementos de Protección</h2>
+                    <p class="text-xs text-slate-400">Arrastra hacia la ficha del estudiante los elementos de bioseguridad requeridos en este momento. Ojo con los distractores.</p>
+                </div>
+
+                <div class="grid grid-cols-12 gap-4 my-auto items-center">
+                    <!-- Ficha Estudiante UAN -->
+                    <div id="avatar-target" ondragover="allowDrop(event)" ondrop="handleEPPDrop(event)" class="col-span-5 bg-slate-900 border-2 border-dashed border-slate-700 p-4 rounded-2xl text-center space-y-2">
+                        <div class="w-14 h-14 bg-cyan-950 border border-cyan-500/40 rounded-full flex items-center justify-center mx-auto text-2xl">👤</div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-100 block">Estudiante de Enfermería</span>
+                            <span class="text-[10px] text-cyan-400 block font-mono">Universidad Antonio Nariño</span>
+                        </div>
+                        <div class="space-y-1 text-left bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px]">
+                            <p class="text-slate-400 text-[10px]">Elementos Equipados:</p>
+                            <p id="equipped-list" class="text-slate-500 font-mono text-[10px]">• Ningún elemento equipado</p>
+                        </div>
+                    </div>
+
+                    <!-- Perchero Neutral (Sin pistas de color) -->
+                    <div class="col-span-7 grid grid-cols-2 gap-2">
+                        <div id="epp-gown" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
+                            <span class="text-xs font-bold text-slate-200 block">🥼 Bata Antifluidos</span>
+                            <span class="text-[10px] text-slate-400">Protección de vestimenta.</span>
+                        </div>
+                        <div id="epp-mask" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
+                            <span class="text-xs font-bold text-slate-200 block">😷 Tapabocas Quirúrgico</span>
+                            <span class="text-[10px] text-slate-400">Mascarilla de protección facial.</span>
+                        </div>
+                        <div id="epp-gloves" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
+                            <span class="text-xs font-bold text-slate-200 block">🧤 Guantes Estériles</span>
+                            <span class="text-[10px] text-slate-400">Protección estéril de manos.</span>
+                        </div>
+                        <div id="epp-shield" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
+                            <span class="text-xs font-bold text-slate-200 block">🥽 Careta / Monogafas</span>
+                            <span class="text-[10px] text-slate-400">Protección ocular completa.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
+                    <span id="feedback-2" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
+                    <button onclick="validateStep2()" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30">
+                        Siguiente: Higiene de Manos →
+                    </button>
+                </div>
+            </div>
+
+            <!-- RETO 3: LAVAMANOS DIBUJO DE GESTOS -->
+            <div id="step-3" class="hidden h-full flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-200">Reto 3: Higiene de Manos Gestual</h2>
+                    <p class="text-xs text-slate-400">Frota las manos realizando movimientos circulares continuos sobre el recuadro para remover la suciedad simulada antes de enjuagar.</p>
+                </div>
+
+                <div class="flex flex-col items-center justify-center my-auto space-y-3">
+                    <div class="relative bg-slate-900 border-2 border-cyan-500/40 rounded-2xl overflow-hidden shadow-2xl">
+                        <canvas id="scrubCanvas" width="340" height="170" class="cursor-crosshair"></canvas>
+                        <div id="water-rinse" onclick="rinseHands()" class="absolute bottom-2 right-2 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer hidden">
+                            💧 Enjuagar bajo el agua
+                        </div>
+                    </div>
+                    <div class="w-64 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+                        <div id="clean-progress" class="bg-cyan-400 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
+                    <span id="feedback-3" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
+                    <button id="btn-step3" onclick="validateStep3()" disabled class="px-5 py-2 bg-slate-700 font-semibold rounded-xl text-xs text-slate-400 cursor-not-allowed">
+                        Siguiente: Escritorio →
+                    </button>
+                </div>
+            </div>
+
+            <!-- RETO 4: TABLET DE DESPACHO Y FIRMA -->
+            <div id="step-4" class="hidden h-full flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-200">Reto 4: Firma de Registros y Elección de Procedimiento</h2>
+                    <p class="text-xs text-slate-400">Firma la bitácora con tu trazo táctil/cursor y selecciona la orden clínica que realizarás hoy.</p>
+                </div>
+
+                <div class="grid grid-cols-12 gap-4 my-auto items-center">
+                    <!-- Canvas Firma -->
+                    <div class="col-span-5 bg-slate-900 border border-slate-700 p-3 rounded-xl text-center space-y-2">
+                        <span class="text-[10px] text-cyan-400 font-mono block">Firma del Estudiante UAN</span>
+                        <canvas id="signCanvas" width="220" height="90" class="bg-slate-950 border border-slate-800 rounded-lg mx-auto cursor-crosshair"></canvas>
+                        <button onclick="clearSignature()" class="text-[10px] text-slate-400 underline hover:text-slate-200">Limpiar Firma</button>
+                    </div>
+
+                    <!-- Botones de Enrutamiento -->
+                    <div class="col-span-7 grid grid-cols-1 gap-2">
+                        <button onclick="selectCase('SNG', 'Azul', 'Sala de Procedimiento 1 (Sonda Nasogástrica)')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-blue-500/50 rounded-xl text-left flex justify-between items-center transition">
+                            <div>
+                                <span class="text-xs font-bold text-blue-400 block">Sonda Nasogástrica (SNG)</span>
+                                <span class="text-[10px] text-slate-400">Sala de Procedimientos 1</span>
+                            </div>
+                            <span class="text-xs font-bold text-blue-400">Camino Azul 🔵</span>
+                        </button>
+                        <button onclick="selectCase('Foley', 'Amarillo', 'Sala de Procedimiento 2 (Sonda Vesical)')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-yellow-500/50 rounded-xl text-left flex justify-between items-center transition">
+                            <div>
+                                <span class="text-xs font-bold text-yellow-400 block">Cateterismo Vesical (Sonda Foley)</span>
+                                <span class="text-[10px] text-slate-400">Sala de Procedimientos 2</span>
+                            </div>
+                            <span class="text-xs font-bold text-yellow-400">Camino Amarillo 🟡</span>
+                        </button>
+                        <button onclick="selectCase('Meds', 'Verde', 'Sala 3 (Aplicación de Medicamentos)')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-emerald-500/50 rounded-xl text-left flex justify-between items-center transition">
+                            <div>
+                                <span class="text-xs font-bold text-emerald-400 block">Administración de Medicamentos</span>
+                                <span class="text-[10px] text-slate-400">Sala de Medicamentos</span>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400">Camino Verde 🟢</span>
+                        </button>
+                        <button onclick="selectCase('Museum', 'Dorado', 'Museo Virtual')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-amber-500/50 rounded-xl text-left flex justify-between items-center transition">
+                            <div>
+                                <span class="text-xs font-bold text-amber-400 block">Galería / Museo Virtual</span>
+                                <span class="text-[10px] text-slate-400">Exhibiciones e Historia</span>
+                            </div>
+                            <span class="text-xs font-bold text-amber-400">Camino Dorado 🟡✨</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
+                    <span id="feedback-4" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
+                    <div></div>
+                </div>
+            </div>
+
+            <!-- MODAL FINAL CON INDICACIÓN Y CÓDIGO DE COLOR -->
+            <div id="modal-result" class="hidden absolute inset-0 bg-slate-950/95 border border-cyan-500/50 rounded-2xl p-6 flex flex-col justify-between z-20">
+                <div class="space-y-3 text-center">
+                    <span id="modal-badge" class="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block"></span>
+                    <h2 id="modal-title" class="text-xl font-extrabold text-slate-100"></h2>
+                    <p id="modal-instruction" class="text-sm font-semibold text-cyan-300 max-w-lg mx-auto leading-relaxed"></p>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-left space-y-2 text-xs">
+                    <h4 class="font-bold text-slate-200">💡 Recordatorio de Bioseguridad:</h4>
+                    <p id="modal-reason" class="text-[11px] text-slate-300 leading-relaxed"></p>
+                </div>
+
+                <div class="flex justify-center gap-3">
+                    <button id="btn-retry" onclick="resetLobby()" class="px-6 py-2.5 bg-red-600 hover:bg-red-500 font-bold rounded-xl text-xs text-white transition">
+                        🔄 Repetir Preparación (Forzar 5.0/5.0)
+                    </button>
+                    <button id="btn-enter" onclick="enterRoom()" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-xl text-xs text-white shadow-lg shadow-emerald-600/30 transition">
+                        🚶‍♂️ Sigue el Camino Proyectado en el Piso
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-slate-700/80 pt-2 flex justify-between items-center text-[11px] text-slate-400">
+            <span>Universidad Antonio Nariño · Enfermería</span>
+            <span>Sistema Hub & Triaje v3.0</span>
+        </footer>
+
+    </div>
+
+    <script>
+        let totalScore = 0.0;
+        let scoreR1 = 0.0, scoreR2 = 0.0, scoreR3 = 0.0, scoreR4 = 0.0;
+        let storedFomitesCount = 0;
+        let equippedEPP = [];
+        let scrubCleanPixels = 0;
+        let isSigned = false;
+        let chosenRoomName = "", chosenColor = "";
+
+        function updateScoreHUD() {
+            totalScore = Math.max(0, scoreR1 + scoreR2 + scoreR3 + scoreR4);
+            document.getElementById('score-text').innerText = `${totalScore.toFixed(1)} / 5.0`;
+        }
+
+        // --- RETO 1: CASILLERO Y ROTACIÓN ---
+        function rotateItem(el) {
+            let angle = (parseInt(el.getAttribute('data-angle')) + 90) % 360;
+            el.setAttribute('data-angle', angle);
+            el.style.transform = `rotate(${angle}deg)`;
+        }
+
+        function handleDragStart(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function handleDrop(ev, zoneType) {
+            ev.preventDefault();
+            let dataId = ev.dataTransfer.getData("text");
+            let el = document.getElementById(dataId);
+            if (!el) return;
+
+            // Alerta especial si intentan guardar la BATA en el casillero
+            if (dataId === 'item-gown-distractor') {
+                document.getElementById('feedback-1').innerText = "⚠️ ¡Atención! La bata NO es un objeto no seguro. Es un implemento de protección que necesitarás pautar.";
+                return;
+            }
+
+            let angle = parseInt(el.getAttribute('data-angle')) || 0;
+
+            if (zoneType === 'narrow' && (dataId === 'item-watch' || dataId === 'item-ring' || dataId === 'item-bracelet')) {
+                if (angle === 90 || angle === 270) {
+                    ev.target.appendChild(el);
+                    storedFomitesCount++;
+                    scoreR1 += 0.25;
+                    document.getElementById('feedback-1').innerText = "✓ Objeto rotado y guardado correctamente.";
+                } else {
+                    document.getElementById('feedback-1').innerText = "❌ El objeto es muy ancho horizontalmente. Haz clic para ROTARLO 90° e insertarlo.";
+                }
+            } else if (zoneType === 'shelf' && (dataId === 'item-phone' || dataId === 'item-airpods' || dataId === 'item-keys' || dataId === 'item-sunglasses')) {
+                ev.target.appendChild(el);
+                storedFomitesCount++;
+                scoreR1 += 0.21;
+                document.getElementById('feedback-1').innerText = "✓ Elemento personal guardado en el estante.";
+            } else {
+                document.getElementById('feedback-1').innerText = "❌ Ubicación o compartimento no adecuado para este objeto.";
+            }
+            updateScoreHUD();
+        }
+
+        function validateStep1() {
+            if (storedFomitesCount >= 6) {
+                scoreR1 = 1.5;
+                updateScoreHUD();
+                document.getElementById('step-1').classList.add('hidden');
+                document.getElementById('step-2').classList.remove('hidden');
+            } else {
+                document.getElementById('feedback-1').innerText = "⚠️ Revisa tus pertenencias. Aún llevas objetos no seguros que deben quedar en el casillero.";
+            }
+        }
+
+        // --- RETO 2: PERCHERO EPP SIN PISTAS ---
+        function handleEPPDrop(ev) {
+            ev.preventDefault();
+            let dataId = ev.dataTransfer.getData("text");
+            
+            if (!equippedEPP.includes(dataId)) {
+                equippedEPP.push(dataId);
+                
+                let labels = {
+                    'epp-gown': 'Bata Antifluidos',
+                    'epp-mask': 'Tapabocas Quirúrgico',
+                    'epp-gloves': 'Guantes Estériles',
+                    'epp-shield': 'Careta / Monogafas'
+                };
+
+                let listHtml = equippedEPP.map(id => `• ${labels[id]}`).join('<br>');
+                document.getElementById('equipped-list').innerHTML = listHtml;
+            }
+        }
+
+        function validateStep2() {
+            // Evaluación real sin pistas: Requiere Bata + Tapabocas. Los guantes en el lobby son penalizados.
+            let hasGown = equippedEPP.includes('epp-gown');
+            let hasMask = equippedEPP.includes('epp-mask');
+            let hasGloves = equippedEPP.includes('epp-gloves');
+
+            if (hasGown && hasMask && !hasGloves) {
+                scoreR2 = 1.0;
+                updateScoreHUD();
+                document.getElementById('step-2').classList.add('hidden');
+                document.getElementById('step-3').classList.remove('hidden');
+                initScrubCanvas();
+            } else if (hasGloves) {
+                scoreR2 = 0.0;
+                updateScoreHUD();
+                document.getElementById('feedback-2').innerText = "❌ Error técnico: Colocarte los guantes en el lobby destruye la esterilidad previa al procedimiento.";
+            } else {
+                scoreR2 = 0.0;
+                updateScoreHUD();
+                document.getElementById('feedback-2').innerText = "⚠️ Faltan elementos básicos de protección requeridos para ingresar.";
+            }
+        }
+
+        // --- RETO 3: HIGIENE INTERACTIVA ---
+        const canvasScrub = document.getElementById('scrubCanvas');
+        const ctxScrub = canvasScrub.getContext('2d');
+        let isScrubbing = false;
+
+        function initScrubCanvas() {
+            ctxScrub.fillStyle = "#1e293b";
+            ctxScrub.fillRect(0, 0, canvasScrub.width, canvasScrub.height);
+            
+            ctxScrub.fillStyle = "#64748b";
+            for (let i = 0; i < 45; i++) {
+                ctxScrub.beginPath();
+                ctxScrub.arc(Math.random() * canvasScrub.width, Math.random() * canvasScrub.height, 12, 0, Math.PI * 2);
+                ctxScrub.fill();
+            }
+        }
+
+        canvasScrub.addEventListener('mousedown', () => isScrubbing = true);
+        canvasScrub.addEventListener('mouseup', () => isScrubbing = false);
+        canvasScrub.addEventListener('mousemove', scrub);
+
+        function scrub(e) {
+            if (!isScrubbing) return;
+            const rect = canvasScrub.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            ctxScrub.globalCompositeOperation = 'destination-out';
+            ctxScrub.beginPath();
+            ctxScrub.arc(x, y, 16, 0, Math.PI * 2);
+            ctxScrub.fill();
+
+            scrubCleanPixels += 1;
+            let progress = Math.min(100, Math.floor((scrubCleanPixels / 180) * 100));
+            document.getElementById('clean-progress').style.width = `${progress}%`;
+
+            if (progress >= 80) {
+                document.getElementById('water-rinse').classList.remove('hidden');
+            }
+        }
+
+        function rinseHands() {
+            ctxScrub.clearRect(0, 0, canvasScrub.width, canvasScrub.height);
+            scoreR3 = 1.5;
+            updateScoreHUD();
+            document.getElementById('feedback-3').innerText = "✓ Higiene de manos completada e impecable.";
+            let btn = document.getElementById('btn-step3');
+            btn.disabled = false;
+            btn.className = "px-5 py-2 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30";
+        }
+
+        function validateStep3() {
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('step-4').classList.remove('hidden');
+            initSignCanvas();
+        }
+
+        // --- RETO 4: FIRMA Y ASIGNACIÓN ---
+        const canvasSign = document.getElementById('signCanvas');
+        const ctxSign = canvasSign.getContext('2d');
+        let isSigning = false;
+
+        function initSignCanvas() {
+            ctxSign.strokeStyle = "#38bdf8";
+            ctxSign.lineWidth = 2;
+        }
+
+        canvasSign.addEventListener('mousedown', () => isSigning = true);
+        canvasSign.addEventListener('mouseup', () => isSigning = false);
+        canvasSign.addEventListener('mousemove', sign);
+
+        function sign(e) {
+            if (!isSigning) return;
+            const rect = canvasSign.getBoundingClientRect();
+            ctxSign.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctxSign.stroke();
+            isSigned = true;
+        }
+
+        function clearSignature() {
+            ctxSign.clearRect(0, 0, canvasSign.width, canvasSign.height);
+            ctxSign.beginPath();
+            isSigned = false;
+        }
+
+        function selectCase(type, colorName, roomTitle) {
+            if (!isSigned) {
+                document.getElementById('feedback-4').innerText = "⚠️ Por favor, firma la bitácora con tu trazo antes de continuar.";
+                return;
+            }
+            scoreR4 = 1.0;
+            updateScoreHUD();
+            chosenRoomName = roomTitle;
+            chosenColor = colorName;
+            evaluateFinalResult();
+        }
+
+        // --- EVALUACIÓN Y MENSAJE CON CÓDIGO DE COLOR ---
+        function evaluateFinalResult() {
+            let modal = document.getElementById('modal-result');
+            let badge = document.getElementById('modal-badge');
+            let title = document.getElementById('modal-title');
+            let instruction = document.getElementById('modal-instruction');
+            let reason = document.getElementById('modal-reason');
+            let btnRetry = document.getElementById('btn-retry');
+            let btnEnter = document.getElementById('btn-enter');
+
+            modal.classList.remove('hidden');
+
+            if (totalScore >= 5.0) {
+                badge.className = "text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
+                badge.innerText = "PREPARACIÓN APROBADA (5.0 / 5.0)";
+                title.innerText = "¡Listo para la Simulación!";
+                instruction.innerText = `Ahora puedes dirigirte a la ${chosenRoomName}. Sigue el camino de color ${chosenColor} marcado en el piso. ¡No olvides tus implementos!`;
+                reason.innerText = "Has retirado los fómites, mantenido la técnica aséptica adecuada y realizado la higiene de manos sin contaminar los insumos. Garantizas la seguridad del paciente.";
+                btnRetry.classList.add('hidden');
+                btnEnter.classList.remove('hidden');
+            } else {
+                badge.className = "text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block bg-red-500/20 text-red-400 border border-red-500/40";
+                badge.innerText = `ACCESO DENEGADO (${totalScore.toFixed(1)} / 5.0)`;
+                title.innerText = "Revisión de Bioseguridad Requerida";
+                instruction.innerText = "No puedes ingresar al área de procedimientos en este momento.";
+                reason.innerText = "Se detectaron faltas en la preparación (objetos personales puestos, colocar guantes en el lobby o mala higiene). Debes reiniciar la preparación para asegurar una práctica clínica 100% segura.";
+                btnRetry.classList.remove('hidden');
+                btnEnter.classList.add('hidden');
+            }
+        }
+
+        function resetLobby() {
+            location.reload();
+        }
+
+        function enterRoom() {
+            alert(`Accediendo al espacio 3D... Sigue la línea de color ${chosenColor} para llegar a: ${chosenRoomName}`);
+        }
+    </script>
+</body>
+</html>
