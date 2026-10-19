@@ -322,8 +322,8 @@
     </div>
 
     <script>
-        // URL PÚBLICA DE LA APLICACIÓN WEB DE GOOGLE APPS SCRIPT
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpD9dimaQs8FR4V1qqkSFnQDtdQF8fIQdBoiK2Wh2Kyxk8Zs2viPcrsxWrm6fRNL_xVw/exec";
+        // URL PÚBLICA DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ycPFJbl4zIcLR8E46fEYYWFjH-PdOwNmUcFXByoAAJiWFqqZQIEoC4y4IRXf7-oPuQ/exec";
 
         let studentName = "";
         let totalScore = 0.0;
@@ -332,6 +332,7 @@
         let scrubCleanPixels = 0;
         let isSigned = false;
         let chosenRoomName = "";
+        let finalFeedbackText = "";
 
         // Categorización estricta de elementos
         const studyItems = ['item-notebook', 'item-pencil'];
@@ -596,13 +597,14 @@
         }
 
         // --- EVALUACIÓN Y ENVÍO A GOOGLE SHEETS ---
-        function sendResultsToSheets(name, score) {
+        function sendResultsToSheets(name, score, feedbackText) {
             let statusEl = document.getElementById('sheets-status');
 
-            // Método por parámetros GET
+            // Formulario URL GET
             let targetUrl = GOOGLE_SCRIPT_URL + 
                             "?nombre=" + encodeURIComponent(name) + 
-                            "&puntaje=" + encodeURIComponent(score.toFixed(1));
+                            "&puntaje=" + encodeURIComponent(score.toFixed(1)) +
+                            "&realimentacion=" + encodeURIComponent(feedbackText);
 
             fetch(targetUrl, {
                 method: "GET",
@@ -612,7 +614,7 @@
                 statusEl.innerText = "✅ Resultado cargado exitosamente en la planilla docente de Google Sheets.";
             })
             .catch(err => {
-                statusEl.innerText = "⚠️ Intento finalizado. Verificando sincronización...";
+                statusEl.innerText = "⚠️ Registro finalizado. Verificando transmisión...";
                 console.error(err);
             });
         }
@@ -629,26 +631,41 @@
             modal.classList.remove('hidden');
 
             let feedbackList = [];
+            let cleanFeedbackArray = [];
 
             if (scoreR1 < 1.5) {
-                feedbackList.push("• <b>Retiro de fómites incompleto:</b> Recuerda que joyas, relojes, accesorios de estudio y dispositivos son reservorios de microorganismos.");
+                let msg = "Retiro de fómites incompleto: joyas/artículos de estudio reservorios de microorganismos.";
+                feedbackList.push("• <b>" + msg + "</b>");
+                cleanFeedbackArray.push(msg);
             } else {
-                feedbackList.push("• <b>Retiro de fómites:</b> Excelente. Organizaste y guardaste adecuadamente todos tus objetos personales.");
+                let msg = "Retiro de fómites adecuado en casillero.";
+                feedbackList.push("• <b>" + msg + "</b>");
+                cleanFeedbackArray.push(msg);
             }
 
             if (equippedEPP.includes('epp-gloves')) {
-                feedbackList.push("• <b>Uso de Guantes:</b> Colocarse los guantes estériles en el área de recepción o lobby interrumpe la cadena de esterilidad.");
+                let msg = "Error: Colocación de guantes estériles en lobby contamina el insumo.";
+                feedbackList.push("• <b>" + msg + "</b>");
+                cleanFeedbackArray.push(msg);
             }
 
             if (!equippedEPP.includes('epp-gown') || !equippedEPP.includes('epp-mask')) {
-                feedbackList.push("• <b>Elementos de Protección:</b> Te faltaron elementos clave (Bata antifluidos o Tapabocas) indispensables antes del ingreso.");
+                let msg = "Faltan EPP básicos (Bata antifluidos o Tapabocas).";
+                feedbackList.push("• <b>" + msg + "</b>");
+                cleanFeedbackArray.push(msg);
             }
 
             if (scoreR3 < 1.5) {
-                feedbackList.push("• <b>Higiene de Manos:</b> La fricción y el aclarado completo son fundamentales para la remoción microbiana.");
+                let msg = "Higiene de manos incompleta.";
+                feedbackList.push("• <b>" + msg + "</b>");
+                cleanFeedbackArray.push(msg);
             } else {
-                feedbackList.push("• <b>Higiene de Manos:</b> Técnica de fricción y enjuague realizada de forma impecable.");
+                let msg = "Higiene de manos con fricción y enjuague impecable.";
+                feedbackList.push("• <b>" + msg + "</b>");
+                cleanFeedbackArray.push(msg);
             }
+
+            finalFeedbackText = cleanFeedbackArray.join(" | ");
 
             if (totalScore >= 5.0) {
                 badge.className = "text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
@@ -671,7 +688,7 @@
             }
 
             // Enviar datos automáticamente a Google Sheets
-            sendResultsToSheets(studentName, totalScore);
+            sendResultsToSheets(studentName, totalScore, finalFeedbackText);
         }
 
         function resetLobby() {
