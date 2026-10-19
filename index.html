@@ -19,9 +19,9 @@
         }
         .app-window {
             width: 100%;
-            max-width: 1020px;
+            max-width: 1060px;
             height: 94vh;
-            max-height: 800px;
+            max-height: 820px;
             background: rgba(15, 23, 42, 0.96);
             border: 2px solid rgba(56, 189, 248, 0.3);
             border-radius: 24px;
@@ -38,17 +38,28 @@
 </head>
 <body class="p-2">
 
-    <div class="app-window p-5 flex flex-col justify-between">
+    <!-- FORMULARIO E IFRAME INVISIBLES (CONEXIÓN A GOOGLE FORMS / SHEETS) -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { document.getElementById('sheets-status').innerText = '✅ ¡Resultado guardado exitosamente en Google Sheets!'; }"></iframe>
+    
+    <form id="gas-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfJjD7upxuJDy_s2nMGk0rb_-jYWyackcXTR2gk1EHvjGqdxg/formResponse" method="POST" target="hidden_iframe" style="display:none;">
+        <input type="hidden" name="entry.916297372" id="form-nombre">
+        <input type="hidden" name="entry.1871073159" id="form-ubicacion">
+        <input type="hidden" name="entry.613340299" id="form-puntaje">
+        <input type="hidden" name="entry.1961159917" id="form-realimentacion">
+        <input type="hidden" name="entry.588350059" id="form-fecha">
+    </form>
+
+    <div class="app-window p-6 flex flex-col justify-between">
         
         <!-- ENCABEZADO Y SCORE SYSTEM -->
         <header class="flex justify-between items-center border-b border-slate-700/80 pb-3">
             <div>
-                <h1 class="font-bold text-base tracking-wide text-slate-100">HOSPITAL DIGITAL UNIVERSITARIO</h1>
-                <p class="text-xs text-cyan-400 font-medium">Estudiante: <span id="student-display-name" class="text-slate-200 font-bold">Por registrar...</span></p>
+                <h1 class="font-bold text-lg tracking-wide text-slate-100">HOSPITAL DIGITAL UNIVERSITARIO</h1>
+                <p class="text-sm text-cyan-400 font-medium">Estudiante: <span id="student-display-name" class="text-slate-200 font-bold">Por registrar...</span></p>
             </div>
-            <div class="bg-slate-900 border border-slate-700 px-4 py-1.5 rounded-xl text-right">
-                <span class="text-[10px] text-slate-400 block uppercase font-mono">Puntaje Bioseguridad</span>
-                <span id="score-text" class="text-base font-extrabold font-mono text-emerald-400">0.0 / 5.0</span>
+            <div class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl text-right">
+                <span class="text-xs text-slate-400 block uppercase font-mono">Puntaje Bioseguridad</span>
+                <span id="score-text" class="text-lg font-extrabold font-mono text-emerald-400">0.0 / 5.0</span>
             </div>
         </header>
 
@@ -57,15 +68,18 @@
 
             <!-- PANTALLA INICIAL: REGISTRO DEL ESTUDIANTE -->
             <div id="step-0" class="h-full flex flex-col justify-center items-center text-center space-y-4 px-6">
-                <div class="bg-slate-900 border border-cyan-500/40 p-6 rounded-2xl max-w-md w-full space-y-4 shadow-2xl">
+                <div class="bg-slate-900 border border-cyan-500/40 p-6 rounded-2xl max-w-lg w-full space-y-4 shadow-2xl">
                     <div class="w-16 h-16 bg-cyan-950 border border-cyan-500/40 rounded-full flex items-center justify-center mx-auto text-3xl">🩺</div>
                     <h2 class="text-lg font-bold text-slate-100">Bienvenido a la Simulación de Bioseguridad</h2>
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        Ingresa tu nombre completo para iniciar el registro en la bitácora del Hospital Virtual UAN. Tu calificación se enviará automáticamente al finalizar.
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Ingresa tus datos para iniciar el registro en la bitácora del Hospital Virtual UAN. Tu calificación se enviará automáticamente al finalizar.
                     </p>
-                    <input type="text" id="student-name-input" placeholder="Nombre completo del estudiante" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-400">
-                    <p id="name-error" class="text-[11px] text-red-400 hidden">⚠️ Por favor escribe tu nombre antes de comenzar.</p>
-                    <button onclick="startSimulation()" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 font-bold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30">
+                    <div class="space-y-3 text-left">
+                        <input type="text" id="student-name-input" placeholder="Nombre completo del estudiante" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-400">
+                        <input type="text" id="student-location-input" placeholder="País / Ciudad / Sede UAN (ej: Colombia, Bogotá)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-400">
+                    </div>
+                    <p id="name-error" class="text-xs text-red-400 hidden">⚠️ Por favor completa tu nombre y ubicación antes de comenzar.</p>
+                    <button onclick="startSimulation()" class="w-full py-3 bg-cyan-600 hover:bg-cyan-500 font-bold rounded-xl text-sm text-white transition shadow-lg shadow-cyan-600/30">
                         Iniciar Preparación Clínica ➔
                     </button>
                 </div>
@@ -73,79 +87,52 @@
 
             <!-- RETO 1: CASILLERO Y RETIRO DE FÓMITES -->
             <div id="step-1" class="hidden h-full flex flex-col justify-between">
-                <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
-                    <h2 class="text-xs font-bold text-cyan-300 uppercase font-mono">📋 Indicación de Simulación:</h2>
-                    <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-                        Nos estamos alistando para ingresar al área de procedimientos. Organiza todos tus objetos personales no seguros (fómites) y de estudio dentro de las 3 secciones correspondientes de tu casillero personal. Puedes devolverlos a tus pertenencias si necesitas corregir.
+                <div class="bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl">
+                    <h2 class="text-sm font-bold text-cyan-300 uppercase font-mono">📋 Indicación de Simulación:</h2>
+                    <p class="text-sm text-slate-200 mt-1 leading-relaxed">
+                        Nos estamos alistando para ingresar al área de procedimientos. Organiza todos tus objetos personales no seguros (fómites) y de estudio dentro de las 3 secciones correspondientes de tu casillero personal.
                     </p>
                 </div>
 
                 <div class="grid grid-cols-12 gap-3 my-auto items-start">
-                    <!-- Casillero Digital en 3 Secciones -->
-                    <div class="col-span-7 bg-slate-900/90 border-2 border-slate-700 p-3 rounded-2xl space-y-2">
-                        <span class="text-[10px] text-cyan-400 font-mono block text-center uppercase tracking-wider">Casillero Personal de Seguridad</span>
+                    <div class="col-span-7 bg-slate-900/90 border-2 border-slate-700 p-3.5 rounded-2xl space-y-2">
+                        <span class="text-xs text-cyan-400 font-mono block text-center uppercase tracking-wider font-bold">Casillero Personal de Seguridad</span>
                         
                         <div class="grid grid-cols-3 gap-2">
-                            <!-- Sección 1: Elementos de Estudio -->
-                            <div id="tray-study" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'study')" class="h-44 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-start p-2 bg-slate-950/50 gap-1.5 overflow-y-auto">
-                                <span class="text-[10px] text-slate-400 font-mono text-center font-bold border-b border-slate-800 pb-1 w-full pointer-events-none">📚 Estudio<br><span class="text-[8px] font-normal text-slate-500">(Cuaderno y Lápiz)</span></span>
+                            <div id="tray-study" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'study')" class="h-48 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-start p-2 bg-slate-950/50 gap-2 overflow-y-auto">
+                                <span class="text-xs text-slate-300 font-mono text-center font-bold border-b border-slate-800 pb-1 w-full pointer-events-none">📚 Estudio<br><span class="text-[10px] font-normal text-slate-400">(Cuaderno y Lápiz)</span></span>
                             </div>
 
-                            <!-- Sección 2: Personales Pequeños -->
-                            <div id="tray-small" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'small')" class="h-44 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-start p-2 bg-slate-950/50 gap-1.5 overflow-y-auto">
-                                <span class="text-[10px] text-slate-400 font-mono text-center font-bold border-b border-slate-800 pb-1 w-full pointer-events-none">💍 Pequeños<br><span class="text-[8px] font-normal text-slate-500">(Accesorios/Audífonos)</span></span>
+                            <div id="tray-small" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'small')" class="h-48 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-start p-2 bg-slate-950/50 gap-2 overflow-y-auto">
+                                <span class="text-xs text-slate-300 font-mono text-center font-bold border-b border-slate-800 pb-1 w-full pointer-events-none">💍 Pequeños<br><span class="text-[10px] font-normal text-slate-400">(Accesorios/Audífonos)</span></span>
                             </div>
 
-                            <!-- Sección 3: Personales Grandes -->
-                            <div id="tray-large" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'large')" class="h-44 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-start p-2 bg-slate-950/50 gap-1.5 overflow-y-auto">
-                                <span class="text-[10px] text-slate-400 font-mono text-center font-bold border-b border-slate-800 pb-1 w-full pointer-events-none">🎒 Grandes<br><span class="text-[8px] font-normal text-slate-500">(Maleta, Gafas, Celular...)</span></span>
+                            <div id="tray-large" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'large')" class="h-48 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-start p-2 bg-slate-950/50 gap-2 overflow-y-auto">
+                                <span class="text-xs text-slate-300 font-mono text-center font-bold border-b border-slate-800 pb-1 w-full pointer-events-none">🎒 Grandes<br><span class="text-[10px] font-normal text-slate-400">(Maleta, Gafas, Celular...)</span></span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Banco de Objetos del Estudiante -->
-                    <div id="student-bank" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'bank')" class="col-span-5 bg-slate-900/40 border border-slate-800 p-3 rounded-2xl flex flex-wrap gap-2 items-center justify-center min-h-[220px] max-h-64 overflow-y-auto">
-                        <span class="text-[10px] text-slate-500 font-mono w-full text-center block pointer-events-none mb-1">Pertenencias del Estudiante</span>
+                    <div id="student-bank" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'bank')" class="col-span-5 bg-slate-900/40 border border-slate-800 p-3.5 rounded-2xl flex flex-wrap gap-2 items-center justify-center min-h-[230px] max-h-72 overflow-y-auto">
+                        <span class="text-xs text-slate-400 font-mono w-full text-center block pointer-events-none mb-1 font-semibold">Pertenencias del Estudiante</span>
                         
-                        <div id="item-notebook" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            📓 <span class="text-[10px]">Cuaderno</span>
-                        </div>
-                        <div id="item-pencil" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            ✏️ <span class="text-[10px]">Lápiz</span>
-                        </div>
-                        <div id="item-ring" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            💍 <span class="text-[10px]">Anillo</span>
-                        </div>
-                        <div id="item-bracelet" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            📿 <span class="text-[10px]">Pulsera</span>
-                        </div>
-                        <div id="item-airpods" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            🎧 <span class="text-[10px]">Audífonos</span>
-                        </div>
-                        <div id="item-backpack" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            🎒 <span class="text-[10px]">Maleta</span>
-                        </div>
-                        <div id="item-sunglasses" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            🕶️ <span class="text-[10px]">Gafas Sol</span>
-                        </div>
-                        <div id="item-phone" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            📱 <span class="text-[10px]">Celular</span>
-                        </div>
-                        <div id="item-watch" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            ⌚ <span class="text-[10px]">Reloj</span>
-                        </div>
-                        <div id="item-keys" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            🔑 <span class="text-[10px]">Llaves</span>
-                        </div>
-                        <div id="item-gown-distractor" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-grab">
-                            🥼 <span class="text-[10px]">Bata Antifluidos</span>
-                        </div>
+                        <div id="item-notebook" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">📓 <span>Cuaderno</span></div>
+                        <div id="item-pencil" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">✏️ <span>Lápiz</span></div>
+                        <div id="item-ring" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">💍 <span>Anillo</span></div>
+                        <div id="item-bracelet" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">📿 <span>Pulsera</span></div>
+                        <div id="item-airpods" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">🎧 <span>Audífonos</span></div>
+                        <div id="item-backpack" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">🎒 <span>Maleta</span></div>
+                        <div id="item-sunglasses" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">🕶️ <span>Gafas Sol</span></div>
+                        <div id="item-phone" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">📱 <span>Celular</span></div>
+                        <div id="item-watch" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">⌚ <span>Reloj</span></div>
+                        <div id="item-keys" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">🔑 <span>Llaves</span></div>
+                        <div id="item-gown-distractor" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-600 p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-grab hover:border-cyan-400">🥼 <span>Bata Antifluidos</span></div>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
-                    <span id="feedback-1" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
-                    <button onclick="validateStep1()" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30">
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2.5">
+                    <span id="feedback-1" class="text-xs text-amber-400 font-medium min-h-[18px]"></span>
+                    <button onclick="validateStep1()" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30">
                         Siguiente: Equipamiento EPP →
                     </button>
                 </div>
@@ -154,48 +141,48 @@
             <!-- RETO 2: PERCHERO EPP -->
             <div id="step-2" class="hidden h-full flex flex-col justify-between">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-200">Reto 2: Selección de Elementos de Protección Personal (EPP)</h2>
-                    <p class="text-xs text-slate-400">Arrastra hacia la ficha del estudiante los elementos de bioseguridad requeridos para esta fase. Si te equivocas, haz clic sobre el elemento equipado para removerlo.</p>
+                    <h2 class="text-base font-bold text-slate-100">Reto 2: Selección de Elementos de Protección Personal (EPP)</h2>
+                    <p class="text-xs text-slate-300">Arrastra hacia la ficha del estudiante los elementos de bioseguridad requeridos para esta fase.</p>
                 </div>
 
                 <div class="grid grid-cols-12 gap-4 my-auto items-center">
                     <div id="avatar-target" ondragover="allowDrop(event)" ondrop="handleEPPDrop(event)" class="col-span-5 bg-slate-900 border-2 border-dashed border-slate-700 p-4 rounded-2xl text-center space-y-2">
-                        <div class="w-14 h-14 bg-cyan-950 border border-cyan-500/40 rounded-full flex items-center justify-center mx-auto text-2xl">👤</div>
+                        <div class="w-16 h-16 bg-cyan-950 border border-cyan-500/40 rounded-full flex items-center justify-center mx-auto text-3xl">👤</div>
                         <div>
-                            <span id="student-card-name" class="text-xs font-bold text-slate-100 block">Estudiante de Enfermería</span>
-                            <span class="text-[10px] text-cyan-400 block font-mono">Universidad Antonio Nariño</span>
+                            <span id="student-card-name" class="text-sm font-bold text-slate-100 block">Estudiante de Enfermería</span>
+                            <span id="student-card-location" class="text-xs text-cyan-400 block font-mono">UAN</span>
                         </div>
-                        <div class="space-y-1 text-left bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px]">
-                            <p class="text-slate-400 text-[10px]">Elementos Equipados (haz clic para retirar):</p>
+                        <div class="space-y-1 text-left bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-xs">
+                            <p class="text-slate-400 font-medium">Elementos Equipados:</p>
                             <div id="equipped-list" class="space-y-1 mt-1">
-                                <p class="text-slate-500 font-mono text-[10px]">• Ningún elemento equipado</p>
+                                <p class="text-slate-500 font-mono text-xs">• Ningún elemento equipado</p>
                             </div>
                         </div>
                     </div>
 
-                    <div id="epp-rack" class="col-span-7 grid grid-cols-2 gap-2">
+                    <div id="epp-rack" class="col-span-7 grid grid-cols-2 gap-3">
                         <div id="epp-gown" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
                             <span class="text-xs font-bold text-slate-200 block">🥼 Bata Antifluidos</span>
-                            <span class="text-[10px] text-slate-400">Protección de vestimenta.</span>
+                            <span class="text-[11px] text-slate-400">Protección de vestimenta.</span>
                         </div>
                         <div id="epp-mask" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
                             <span class="text-xs font-bold text-slate-200 block">😷 Tapabocas Quirúrgico</span>
-                            <span class="text-[10px] text-slate-400">Mascarilla de protección facial.</span>
+                            <span class="text-[11px] text-slate-400">Mascarilla de protección facial.</span>
                         </div>
                         <div id="epp-gloves" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
                             <span class="text-xs font-bold text-slate-200 block">🧤 Guantes Estériles</span>
-                            <span class="text-[10px] text-slate-400">Protección estéril de manos.</span>
+                            <span class="text-[11px] text-slate-400">Protección estéril de manos.</span>
                         </div>
                         <div id="epp-shield" draggable="true" ondragstart="handleDragStart(event)" class="bg-slate-800 border border-slate-700 p-3 rounded-xl text-left cursor-grab hover:border-slate-500">
                             <span class="text-xs font-bold text-slate-200 block">🥽 Careta / Monogafas</span>
-                            <span class="text-[10px] text-slate-400">Protección ocular completa.</span>
+                            <span class="text-[11px] text-slate-400">Protección ocular completa.</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
-                    <span id="feedback-2" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
-                    <button onclick="validateStep2()" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30">
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2.5">
+                    <span id="feedback-2" class="text-xs text-amber-400 font-medium min-h-[18px]"></span>
+                    <button onclick="validateStep2()" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30">
                         Siguiente: Higiene de Manos →
                     </button>
                 </div>
@@ -204,25 +191,25 @@
             <!-- RETO 3: LAVAMANOS DIBUJO DE GESTOS -->
             <div id="step-3" class="hidden h-full flex flex-col justify-between">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-200">Reto 3: Higiene de Manos Gestual</h2>
-                    <p class="text-xs text-slate-400">Frota las manos realizando movimientos circulares continuos sobre el recuadro para remover la suciedad simulada antes de enjuagar.</p>
+                    <h2 class="text-base font-bold text-slate-100">Reto 3: Higiene de Manos Gestual</h2>
+                    <p class="text-xs text-slate-300">Frota las manos realizando movimientos circulares continuos sobre el recuadro para remover la suciedad simulada antes de enjuagar.</p>
                 </div>
 
                 <div class="flex flex-col items-center justify-center my-auto space-y-3">
                     <div class="relative bg-slate-900 border-2 border-cyan-500/40 rounded-2xl overflow-hidden shadow-2xl">
-                        <canvas id="scrubCanvas" width="340" height="170" class="cursor-crosshair"></canvas>
-                        <div id="water-rinse" onclick="rinseHands()" class="absolute bottom-2 right-2 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer hidden">
+                        <canvas id="scrubCanvas" width="360" height="180" class="cursor-crosshair"></canvas>
+                        <div id="water-rinse" onclick="rinseHands()" class="absolute bottom-2 right-2 bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow cursor-pointer hidden">
                             💧 Enjuagar bajo el agua
                         </div>
                     </div>
-                    <div class="w-64 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+                    <div class="w-72 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
                         <div id="clean-progress" class="bg-cyan-400 h-full w-0 transition-all duration-300"></div>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
-                    <span id="feedback-3" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
-                    <button id="btn-step3" onclick="validateStep3()" disabled class="px-5 py-2 bg-slate-700 font-semibold rounded-xl text-xs text-slate-400 cursor-not-allowed">
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2.5">
+                    <span id="feedback-3" class="text-xs text-amber-400 font-medium min-h-[18px]"></span>
+                    <button id="btn-step3" onclick="validateStep3()" disabled class="px-5 py-2.5 bg-slate-700 font-semibold rounded-xl text-xs text-slate-400 cursor-not-allowed">
                         Siguiente: Registro →
                     </button>
                 </div>
@@ -231,51 +218,57 @@
             <!-- RETO 4: TABLET DE DESPACHO Y FIRMA -->
             <div id="step-4" class="hidden h-full flex flex-col justify-between">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-200">Reto 4: Firma de Registros y Elección de Procedimiento</h2>
-                    <p class="text-xs text-slate-400">Firma la bitácora con tu trazo táctil/cursor y selecciona la orden clínica que realizarás hoy.</p>
+                    <h2 class="text-base font-bold text-slate-100">Reto 4: Firma de Registros y Elección de Procedimiento</h2>
+                    <p class="text-xs text-slate-300">Firma la bitácora con tu trazo táctil/cursor, verifica la fecha de la firma y selecciona la orden clínica que realizarás hoy.</p>
                 </div>
 
                 <div class="grid grid-cols-12 gap-4 my-auto items-center">
-                    <div class="col-span-5 bg-slate-900 border border-slate-700 p-3 rounded-xl text-center space-y-2">
-                        <span class="text-[10px] text-cyan-400 font-mono block">Firma del Estudiante UAN</span>
+                    <div class="col-span-5 bg-slate-900 border border-slate-700 p-3.5 rounded-xl text-center space-y-2">
+                        <span class="text-xs text-cyan-400 font-mono block font-bold">Firma del Estudiante UAN</span>
                         <canvas id="signCanvas" width="220" height="90" class="bg-slate-950 border border-slate-800 rounded-lg mx-auto cursor-crosshair"></canvas>
-                        <button onclick="clearSignature()" class="text-[10px] text-slate-400 underline hover:text-slate-200">Limpiar Firma</button>
+                        
+                        <div class="pt-1.5 border-t border-slate-800 space-y-1">
+                            <label class="text-xs text-slate-300 block text-left font-medium">📅 Fecha de la Firma:</label>
+                            <input type="date" id="signature-date-input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400">
+                        </div>
+
+                        <button onclick="clearSignature()" class="text-xs text-slate-400 underline hover:text-slate-200 block mx-auto pt-1">Limpiar Firma</button>
                     </div>
 
-                    <div class="col-span-7 grid grid-cols-1 gap-2">
-                        <button onclick="selectCase('SNG', 'Sala de Procedimientos 1 (Sonda Nasogástrica)')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-blue-500/50 rounded-xl text-left flex justify-between items-center transition">
+                    <div class="col-span-7 grid grid-cols-1 gap-2.5">
+                        <button onclick="selectCase('SNG', 'Sala de Procedimientos 1 (Sonda Nasogástrica)')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-blue-500/50 rounded-xl text-left flex justify-between items-center transition">
                             <div>
                                 <span class="text-xs font-bold text-blue-400 block">Sonda Nasogástrica (SNG)</span>
-                                <span class="text-[10px] text-slate-400">Sala de Procedimientos 1</span>
+                                <span class="text-[11px] text-slate-400">Sala de Procedimientos 1</span>
                             </div>
                             <span class="text-xs font-semibold text-slate-300">Ingresar ➔</span>
                         </button>
-                        <button onclick="selectCase('Foley', 'Sala de Procedimientos 2 (Sonda Vesical)')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-yellow-500/50 rounded-xl text-left flex justify-between items-center transition">
+                        <button onclick="selectCase('Foley', 'Sala de Procedimientos 2 (Sonda Vesical)')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-yellow-500/50 rounded-xl text-left flex justify-between items-center transition">
                             <div>
                                 <span class="text-xs font-bold text-yellow-400 block">Cateterismo Vesical (Sonda Foley)</span>
-                                <span class="text-[10px] text-slate-400">Sala de Procedimientos 2</span>
+                                <span class="text-[11px] text-slate-400">Sala de Procedimientos 2</span>
                             </div>
                             <span class="text-xs font-semibold text-slate-300">Ingresar ➔</span>
                         </button>
-                        <button onclick="selectCase('Meds', 'Sala de Medicamentos')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-emerald-500/50 rounded-xl text-left flex justify-between items-center transition">
+                        <button onclick="selectCase('Meds', 'Sala de Medicamentos')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-emerald-500/50 rounded-xl text-left flex justify-between items-center transition">
                             <div>
                                 <span class="text-xs font-bold text-emerald-400 block">Administración de Medicamentos</span>
-                                <span class="text-[10px] text-slate-400">Sala de Medicamentos</span>
+                                <span class="text-[11px] text-slate-400">Sala de Medicamentos</span>
                             </div>
                             <span class="text-xs font-semibold text-slate-300">Ingresar ➔</span>
                         </button>
-                        <button onclick="selectCase('Museum', 'Museo Virtual')" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-amber-500/50 rounded-xl text-left flex justify-between items-center transition">
+                        <button onclick="selectCase('Museum', 'Museo Virtual')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-amber-500/50 rounded-xl text-left flex justify-between items-center transition">
                             <div>
                                 <span class="text-xs font-bold text-amber-400 block">Galería / Museo Virtual</span>
-                                <span class="text-[10px] text-slate-400">Exhibiciones e Historia</span>
+                                <span class="text-[11px] text-slate-400">Exhibiciones e Historia</span>
                             </div>
                             <span class="text-xs font-semibold text-slate-300">Ingresar ➔</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center border-t border-slate-800 pt-2">
-                    <span id="feedback-4" class="text-xs text-amber-400 font-medium min-h-[16px]"></span>
+                <div class="flex justify-between items-center border-t border-slate-800 pt-2.5">
+                    <span id="feedback-4" class="text-xs text-amber-400 font-medium min-h-[18px]"></span>
                     <div></div>
                 </div>
             </div>
@@ -289,10 +282,9 @@
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-left space-y-2 text-xs">
-                    <h4 class="font-bold text-slate-200">💡 Informe y Retroalimentación de Bioseguridad:</h4>
-                    <div id="modal-reason" class="text-[11px] text-slate-300 leading-relaxed space-y-1"></div>
-                    <!-- Estado de sincronización -->
-                    <p id="sheets-status" class="text-[10px] text-cyan-400 pt-2 font-mono italic text-center">⏳ Guardando resultado en la hoja docente...</p>
+                    <h4 class="font-bold text-slate-200 text-sm">💡 Informe y Retroalimentación de Bioseguridad:</h4>
+                    <div id="modal-reason" class="text-xs text-slate-300 leading-relaxed space-y-1"></div>
+                    <p id="sheets-status" class="text-xs text-cyan-400 pt-2 font-mono italic text-center">⏳ Transmitiendo datos a Google Sheets...</p>
                 </div>
 
                 <div class="flex justify-center gap-3">
@@ -308,7 +300,7 @@
         </main>
 
         <!-- FOOTER CON LOGO INTEGRADO -->
-        <footer class="border-t border-slate-700/80 pt-2 flex justify-between items-center text-[11px] text-slate-400">
+        <footer class="border-t border-slate-700/80 pt-2 flex justify-between items-center text-xs text-slate-400">
             <div class="flex items-center gap-2">
                 <span>Universidad Antonio Nariño · Enfermería</span>
                 <span>·</span>
@@ -322,33 +314,50 @@
     </div>
 
     <script>
-        // URL PÚBLICA DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ycPFJbl4zIcLR8E46fEYYWFjH-PdOwNmUcFXByoAAJiWFqqZQIEoC4y4IRXf7-oPuQ/exec";
-
         let studentName = "";
+        let studentLocation = "";
         let totalScore = 0.0;
         let scoreR1 = 0.0, scoreR2 = 0.0, scoreR3 = 0.0, scoreR4 = 0.0;
         let equippedEPP = [];
         let scrubCleanPixels = 0;
         let isSigned = false;
         let chosenRoomName = "";
-        let finalFeedbackText = "";
+        let submitted = false;
 
-        // Categorización estricta de elementos
         const studyItems = ['item-notebook', 'item-pencil'];
         const smallItems = ['item-ring', 'item-bracelet', 'item-airpods'];
         const largeItems = ['item-backpack', 'item-sunglasses', 'item-phone', 'item-watch', 'item-keys'];
         const allFomites = [...studyItems, ...smallItems, ...largeItems];
 
+        // Mezclar elementos del banco de pertenencias al azar
+        function shuffleBankItems() {
+            let bank = document.getElementById('student-bank');
+            let items = Array.from(bank.children).filter(child => child.tagName === 'DIV');
+            
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                bank.appendChild(items[j]);
+            }
+        }
+
         function startSimulation() {
-            let input = document.getElementById('student-name-input').value.trim();
-            if (!input) {
+            let nameInput = document.getElementById('student-name-input').value.trim();
+            let locInput = document.getElementById('student-location-input').value.trim();
+
+            if (!nameInput || !locInput) {
                 document.getElementById('name-error').classList.remove('hidden');
                 return;
             }
-            studentName = input;
+
+            studentName = nameInput;
+            studentLocation = locInput;
+
             document.getElementById('student-display-name').innerText = studentName;
             document.getElementById('student-card-name').innerText = studentName;
+            document.getElementById('student-card-location').innerText = studentLocation;
+
+            shuffleBankItems();
+
             document.getElementById('step-0').classList.add('hidden');
             document.getElementById('step-1').classList.remove('hidden');
         }
@@ -358,7 +367,6 @@
             document.getElementById('score-text').innerText = `${totalScore.toFixed(1)} / 5.0`;
         }
 
-        // --- RETO 1: CASILLERO Y DRAG & DROP SECCIONADO ---
         function handleDragStart(ev) {
             ev.dataTransfer.setData("text", ev.target.id);
         }
@@ -383,21 +391,17 @@
             }
 
             if (dataId === 'item-gown-distractor') {
-                document.getElementById('feedback-1').innerText = "⚠️ ¡Atención! La bata NO se guarda en el casillero. Es un implemento de protección para el siguiente paso.";
+                document.getElementById('feedback-1').innerText = "⚠️ ¡Atención! La bata NO se guarda en el casillero.";
                 return;
             }
 
-            if (zoneType === 'study' && studyItems.includes(dataId)) {
+            if ((zoneType === 'study' && studyItems.includes(dataId)) ||
+                (zoneType === 'small' && smallItems.includes(dataId)) ||
+                (zoneType === 'large' && largeItems.includes(dataId))) {
                 dropTarget.appendChild(el);
-                document.getElementById('feedback-1').innerText = "✓ Elemento de estudio guardado correctamente.";
-            } else if (zoneType === 'small' && smallItems.includes(dataId)) {
-                dropTarget.appendChild(el);
-                document.getElementById('feedback-1').innerText = "✓ Objeto personal pequeño guardado correctamente.";
-            } else if (zoneType === 'large' && largeItems.includes(dataId)) {
-                dropTarget.appendChild(el);
-                document.getElementById('feedback-1').innerText = "✓ Objeto personal grande guardado correctamente.";
+                document.getElementById('feedback-1').innerText = "✓ Objeto guardado correctamente.";
             } else {
-                document.getElementById('feedback-1').innerText = "❌ Este elemento no corresponde a esta categoría del casillero.";
+                document.getElementById('feedback-1').innerText = "❌ Este elemento no corresponde a esta categoría.";
             }
 
             calculateScoreR1();
@@ -409,16 +413,9 @@
             let trayLarge = document.getElementById('tray-large');
 
             let correctlyStored = 0;
-
-            studyItems.forEach(id => {
-                if (trayStudy.contains(document.getElementById(id))) correctlyStored++;
-            });
-            smallItems.forEach(id => {
-                if (traySmall.contains(document.getElementById(id))) correctlyStored++;
-            });
-            largeItems.forEach(id => {
-                if (trayLarge.contains(document.getElementById(id))) correctlyStored++;
-            });
+            studyItems.forEach(id => { if (trayStudy.contains(document.getElementById(id))) correctlyStored++; });
+            smallItems.forEach(id => { if (traySmall.contains(document.getElementById(id))) correctlyStored++; });
+            largeItems.forEach(id => { if (trayLarge.contains(document.getElementById(id))) correctlyStored++; });
 
             scoreR1 = (correctlyStored / allFomites.length) * 1.5;
             updateScoreHUD();
@@ -427,26 +424,19 @@
         function validateStep1() {
             let bank = document.getElementById('student-bank');
             let remainingFomites = 0;
-            
-            allFomites.forEach(id => {
-                if (bank.contains(document.getElementById(id))) {
-                    remainingFomites++;
-                }
-            });
+            allFomites.forEach(id => { if (bank.contains(document.getElementById(id))) remainingFomites++; });
 
             if (remainingFomites === 0) {
                 document.getElementById('step-1').classList.add('hidden');
                 document.getElementById('step-2').classList.remove('hidden');
             } else {
-                document.getElementById('feedback-1').innerText = `⚠️ Aún conservas ${remainingFomites} objeto(s) en tus pertenencias. Guárdalos en el casillero.`;
+                document.getElementById('feedback-1').innerText = `⚠️ Aún conservas ${remainingFomites} objeto(s) en tus pertenencias.`;
             }
         }
 
-        // --- RETO 2: PERCHERO EPP ---
         function handleEPPDrop(ev) {
             ev.preventDefault();
             let dataId = ev.dataTransfer.getData("text");
-
             if (dataId.startsWith('epp-') && !equippedEPP.includes(dataId)) {
                 equippedEPP.push(dataId);
                 renderEquippedEPP();
@@ -468,10 +458,10 @@
 
             let container = document.getElementById('equipped-list');
             if (equippedEPP.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 font-mono text-[10px]">• Ningún elemento equipado</p>`;
+                container.innerHTML = `<p class="text-slate-500 font-mono text-xs">• Ningún elemento equipado</p>`;
             } else {
                 container.innerHTML = equippedEPP.map(id => `
-                    <div onclick="removeEPP('${id}')" class="flex justify-between items-center bg-slate-900 border border-cyan-500/30 p-1.5 rounded text-[10px] text-cyan-200 cursor-pointer hover:bg-red-950/40 hover:border-red-500/50 transition group">
+                    <div onclick="removeEPP('${id}')" class="flex justify-between items-center bg-slate-900 border border-cyan-500/30 p-1.5 rounded text-xs text-cyan-200 cursor-pointer hover:bg-red-950/40 hover:border-red-500/50 transition group">
                         <span>${labels[id]}</span>
                         <span class="text-slate-500 group-hover:text-red-400 font-bold">✕</span>
                     </div>
@@ -488,10 +478,10 @@
                 scoreR2 = 1.0;
             } else if (hasGloves) {
                 scoreR2 = 0.0;
-                document.getElementById('feedback-2').innerText = "❌ Error técnico: Colocarte los guantes estériles en el lobby contamina el insumo antes del procedimiento.";
+                document.getElementById('feedback-2').innerText = "❌ Error técnico: Colocarte los guantes estériles en el lobby contamina el insumo.";
             } else {
                 scoreR2 = 0.5;
-                document.getElementById('feedback-2').innerText = "⚠️ Faltan elementos básicos de protección (Bata y Tapabocas) para continuar.";
+                document.getElementById('feedback-2').innerText = "⚠️ Faltan elementos básicos (Bata y Tapabocas).";
             }
 
             updateScoreHUD();
@@ -500,7 +490,6 @@
             initScrubCanvas();
         }
 
-        // --- RETO 3: HIGIENE INTERACTIVA ---
         const canvasScrub = document.getElementById('scrubCanvas');
         const ctxScrub = canvasScrub.getContext('2d');
         let isScrubbing = false;
@@ -508,7 +497,6 @@
         function initScrubCanvas() {
             ctxScrub.fillStyle = "#1e293b";
             ctxScrub.fillRect(0, 0, canvasScrub.width, canvasScrub.height);
-            
             ctxScrub.fillStyle = "#64748b";
             for (let i = 0; i < 45; i++) {
                 ctxScrub.beginPath();
@@ -524,31 +512,25 @@
         function scrub(e) {
             if (!isScrubbing) return;
             const rect = canvasScrub.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
             ctxScrub.globalCompositeOperation = 'destination-out';
             ctxScrub.beginPath();
-            ctxScrub.arc(x, y, 16, 0, Math.PI * 2);
+            ctxScrub.arc(e.clientX - rect.left, e.clientY - rect.top, 16, 0, Math.PI * 2);
             ctxScrub.fill();
 
             scrubCleanPixels += 1;
             let progress = Math.min(100, Math.floor((scrubCleanPixels / 180) * 100));
             document.getElementById('clean-progress').style.width = `${progress}%`;
-
-            if (progress >= 80) {
-                document.getElementById('water-rinse').classList.remove('hidden');
-            }
+            if (progress >= 80) document.getElementById('water-rinse').classList.remove('hidden');
         }
 
         function rinseHands() {
             ctxScrub.clearRect(0, 0, canvasScrub.width, canvasScrub.height);
             scoreR3 = 1.5;
             updateScoreHUD();
-            document.getElementById('feedback-3').innerText = "✓ Higiene de manos completada correctamente.";
+            document.getElementById('feedback-3').innerText = "✓ Higiene de manos completada.";
             let btn = document.getElementById('btn-step3');
             btn.disabled = false;
-            btn.className = "px-5 py-2 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30";
+            btn.className = "px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 font-semibold rounded-xl text-xs text-white transition shadow-lg shadow-cyan-600/30";
         }
 
         function validateStep3() {
@@ -557,7 +539,6 @@
             initSignCanvas();
         }
 
-        // --- RETO 4: FIRMA Y ASIGNACIÓN ---
         const canvasSign = document.getElementById('signCanvas');
         const ctxSign = canvasSign.getContext('2d');
         let isSigning = false;
@@ -565,19 +546,20 @@
         function initSignCanvas() {
             ctxSign.strokeStyle = "#38bdf8";
             ctxSign.lineWidth = 2;
+            
+            let today = new Date().toISOString().split('T')[0];
+            document.getElementById('signature-date-input').value = today;
         }
 
         canvasSign.addEventListener('mousedown', () => isSigning = true);
         canvasSign.addEventListener('mouseup', () => isSigning = false);
-        canvasSign.addEventListener('mousemove', sign);
-
-        function sign(e) {
+        canvasSign.addEventListener('mousemove', (e) => {
             if (!isSigning) return;
             const rect = canvasSign.getBoundingClientRect();
             ctxSign.lineTo(e.clientX - rect.left, e.clientY - rect.top);
             ctxSign.stroke();
             isSigned = true;
-        }
+        });
 
         function clearSignature() {
             ctxSign.clearRect(0, 0, canvasSign.width, canvasSign.height);
@@ -586,37 +568,31 @@
         }
 
         function selectCase(type, roomTitle) {
+            let signDate = document.getElementById('signature-date-input').value;
             if (!isSigned) {
                 document.getElementById('feedback-4').innerText = "⚠️ Por favor, firma la bitácora con tu trazo antes de ingresar.";
                 return;
             }
+            if (!signDate) {
+                document.getElementById('feedback-4').innerText = "⚠️ Selecciona la fecha de la firma.";
+                return;
+            }
+
             scoreR4 = 1.0;
             updateScoreHUD();
             chosenRoomName = roomTitle;
             evaluateFinalResult();
         }
 
-        // --- EVALUACIÓN Y ENVÍO A GOOGLE SHEETS ---
-        function sendResultsToSheets(name, score, feedbackText) {
-            let statusEl = document.getElementById('sheets-status');
-
-            // Formulario URL GET
-            let targetUrl = GOOGLE_SCRIPT_URL + 
-                            "?nombre=" + encodeURIComponent(name) + 
-                            "&puntaje=" + encodeURIComponent(score.toFixed(1)) +
-                            "&realimentacion=" + encodeURIComponent(feedbackText);
-
-            fetch(targetUrl, {
-                method: "GET",
-                mode: "no-cors"
-            })
-            .then(() => {
-                statusEl.innerText = "✅ Resultado cargado exitosamente en la planilla docente de Google Sheets.";
-            })
-            .catch(err => {
-                statusEl.innerText = "⚠️ Registro finalizado. Verificando transmisión...";
-                console.error(err);
-            });
+        function sendResultsToSheets(name, location, score, feedbackText, signDate) {
+            document.getElementById('form-nombre').value = name;
+            document.getElementById('form-ubicacion').value = location;
+            document.getElementById('form-puntaje').value = score.toFixed(1);
+            document.getElementById('form-realimentacion').value = feedbackText;
+            document.getElementById('form-fecha').value = signDate;
+            
+            submitted = true;
+            document.getElementById('gas-form').submit();
         }
 
         function evaluateFinalResult() {
@@ -627,6 +603,8 @@
             let reason = document.getElementById('modal-reason');
             let btnRetry = document.getElementById('btn-retry');
             let btnEnter = document.getElementById('btn-enter');
+            
+            let signDate = document.getElementById('signature-date-input').value;
 
             modal.classList.remove('hidden');
 
@@ -634,7 +612,7 @@
             let cleanFeedbackArray = [];
 
             if (scoreR1 < 1.5) {
-                let msg = "Retiro de fómites incompleto: joyas/artículos de estudio reservorios de microorganismos.";
+                let msg = "Retiro de fómites incompleto.";
                 feedbackList.push("• <b>" + msg + "</b>");
                 cleanFeedbackArray.push(msg);
             } else {
@@ -644,13 +622,13 @@
             }
 
             if (equippedEPP.includes('epp-gloves')) {
-                let msg = "Error: Colocación de guantes estériles en lobby contamina el insumo.";
+                let msg = "Error: Guantes estériles colocados en lobby contamina el insumo.";
                 feedbackList.push("• <b>" + msg + "</b>");
                 cleanFeedbackArray.push(msg);
             }
 
             if (!equippedEPP.includes('epp-gown') || !equippedEPP.includes('epp-mask')) {
-                let msg = "Faltan EPP básicos (Bata antifluidos o Tapabocas).";
+                let msg = "Faltan EPP básicos (Bata o Tapabocas).";
                 feedbackList.push("• <b>" + msg + "</b>");
                 cleanFeedbackArray.push(msg);
             }
@@ -660,44 +638,36 @@
                 feedbackList.push("• <b>" + msg + "</b>");
                 cleanFeedbackArray.push(msg);
             } else {
-                let msg = "Higiene de manos con fricción y enjuague impecable.";
+                let msg = "Higiene de manos impecable.";
                 feedbackList.push("• <b>" + msg + "</b>");
                 cleanFeedbackArray.push(msg);
             }
 
-            finalFeedbackText = cleanFeedbackArray.join(" | ");
+            let finalFeedbackText = cleanFeedbackArray.join(" | ");
 
             if (totalScore >= 5.0) {
                 badge.className = "text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
                 badge.innerText = "PREPARACIÓN APROBADA (5.0 / 5.0)";
                 title.innerText = "¡Felicitaciones por seguir los protocolos de bioseguridad!";
-                instruction.innerText = `Has completado exitosamente la preparación aséptica y el registro de ingreso. Quedas habilitado para dirigirte a la ${chosenRoomName}.`;
-                reason.innerHTML = `<p class="text-emerald-300 font-semibold">Cumplimiento total de las normas del Hospital Digital UAN.</p><br>` + feedbackList.join('<br>');
-                
+                instruction.innerText = `Quedas habilitado para dirigirte a la ${chosenRoomName}.`;
+                reason.innerHTML = `<p class="text-emerald-300 font-semibold">Cumplimiento total de bioseguridad.</p><br>` + feedbackList.join('<br>');
                 btnRetry.classList.add('hidden');
                 btnEnter.classList.remove('hidden');
             } else {
                 badge.className = "text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block bg-amber-500/20 text-amber-400 border border-amber-500/40";
                 badge.innerText = `REVISIÓN REQUERIDA (${totalScore.toFixed(1)} / 5.0)`;
-                title.innerText = "Recomendaciones sobre el Proceso de Bioseguridad";
-                instruction.innerText = "Debes revisar y corregir tus procedimientos de bioseguridad antes de ingresar a la sala clínica.";
+                title.innerText = "Recomendaciones sobre el Proceso";
+                instruction.innerText = "Revisa y corrige tus procedimientos antes de ingresar a la sala clínica.";
                 reason.innerHTML = feedbackList.join('<br>');
-
                 btnRetry.classList.remove('hidden');
                 btnEnter.classList.add('hidden');
             }
 
-            // Enviar datos automáticamente a Google Sheets
-            sendResultsToSheets(studentName, totalScore, finalFeedbackText);
+            sendResultsToSheets(studentName, studentLocation, totalScore, finalFeedbackText, signDate);
         }
 
-        function resetLobby() {
-            location.reload();
-        }
-
-        function enterRoom() {
-            alert(`Ingresando a ${chosenRoomName}. ¡Mucha suerte en la simulación clínica, ${studentName}!`);
-        }
+        function resetLobby() { location.reload(); }
+        function enterRoom() { alert(`Ingresando a ${chosenRoomName}. ¡Éxitos, ${studentName}!`); }
     </script>
 </body>
 </html>
